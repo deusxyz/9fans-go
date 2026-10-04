@@ -183,7 +183,11 @@ func shinyMain(s screen.Screen) {
 			// TODO buttons
 			// DirNone is an auto-repeat of a held key; deliver it like
 			// a press so that holding an arrow keeps moving the cursor.
-			if e.Direction == key.DirRelease {
+			// Anything else is a release, or a modifier-only change,
+			// which the cocoa driver reports with the raw NSKeyDown /
+			// NSKeyUp event type as its direction; those must not reach
+			// the client as KeyCtl/KeyShift/KeyAlt keystrokes.
+			if e.Direction != key.DirPress && e.Direction != key.DirNone {
 				break
 			}
 			ch := e.Rune
