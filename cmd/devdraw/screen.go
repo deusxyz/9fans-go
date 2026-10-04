@@ -181,7 +181,9 @@ func shinyMain(s screen.Screen) {
 
 		case key.Event:
 			// TODO buttons
-			if e.Direction != key.DirPress {
+			// DirNone is an auto-repeat of a held key; deliver it like
+			// a press so that holding an arrow keeps moving the cursor.
+			if e.Direction == key.DirRelease {
 				break
 			}
 			ch := e.Rune
@@ -190,6 +192,15 @@ func shinyMain(s screen.Screen) {
 			}
 			if ch == -1 && int(e.Code) < len(codeKeys) {
 				ch = codeKeys[e.Code]
+			}
+			// Cmd (Meta) + printable key is reported in the draw.KeyCmd
+			// range, as the plan9port devdraw does on macOS; Shift makes
+			// the letter upper case so Cmd-Shift-Z differs from Cmd-Z.
+			if e.Modifiers&key.ModMeta != 0 && ch >= ' ' && ch <= '~' {
+				if e.Modifiers&key.ModShift != 0 && 'a' <= ch && ch <= 'z' {
+					ch += 'A' - 'a'
+				}
+				ch += draw.KeyCmd
 			}
 			if ch > 0 {
 				gfx_keystroke(client, ch)
